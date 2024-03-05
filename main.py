@@ -419,13 +419,12 @@ def remove_files_before_date(formatted_date: str):
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket,query_params: dict = {}):
+    query_params = websocket.query_params
     mediaType = query_params.get("mediaType")
     options = query_params.get("options")
     print("mediaType",mediaType)
     print("options",options)
     await websocket.accept()
-    # mediaType="webcam"
-    # options="left"
     while True:
         data = await websocket.receive_text()
         # print("data",data)
