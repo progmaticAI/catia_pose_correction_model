@@ -188,7 +188,7 @@ def get_visualization_both(image, pose, left_angle, right_angle, color):
 
 def get_temp_file_path(file_extension):
     temp_filename = str(uuid.uuid4()) + file_extension
-    return os.path.join("tmp", temp_filename)
+    return os.path.join("/tmp", temp_filename)
 
 def pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCorrection):
         image.flags.writeable = False
