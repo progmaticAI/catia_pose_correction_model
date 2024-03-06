@@ -22,9 +22,9 @@ app = FastAPI()
 # Allow requests from all origins during development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://get-the-pose.com","*"],  
+    allow_origins=["https://get-the-pose.com"],  
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=[],
 )
 # Store connections in a set
 connections = set()
