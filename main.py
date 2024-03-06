@@ -216,7 +216,7 @@ def pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCo
                 image = get_visualization_both(image, MyPoseCorrection.pose, MyPoseCorrection.trunk_angle[0], MyPoseCorrection.trunk_angle[1], MyPoseCorrection.get_trunk_color_both() )
             return False, image
         except TypeError:
-            error_content = "Please ensure that the uploaded image contains a human."
+            error_content = "Please ensure that the uploaded content contains a human."
             return True, error_content
 
 def process_frame(frame_data, mediaType, options):
@@ -297,7 +297,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                     os.remove(media_file_path)
                 except Exception as e:
                     print("Error deleting file:", e)
-                    return JSONResponse(content=response)
+                return JSONResponse(content=response)
             else:
                 # Convert the processed image to base64
                 _, img_encoded = cv2.imencode('.png', response)
@@ -375,7 +375,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                             print("file remove error ",media_file_path)
                             os.remove(media_file_path)
                             # print("output_video_path",output_video_path)
-                            filename =output_video_path.split("\\")[-1]
+                            filename =output_video_path.split("/")[-1]
                             # print("filename", filename)
                             return {"filename": filename}
                         except Exception as e:
