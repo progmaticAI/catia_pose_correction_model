@@ -22,7 +22,7 @@ app = FastAPI()
 # Allow requests from all origins during development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://get-the-pose.com"],  
+    allow_origins=["https://get-the-pose.com", "https://get-the-pose.com/image-pose", "https://get-the-pose.com/video-pose", "https://get-the-pose.com/ws"],  
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=[],
 )
