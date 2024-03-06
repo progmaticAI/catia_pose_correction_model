@@ -2,3 +2,9 @@ fastapi
 opencv-python
 mediapipe
 python-multipart
+websockets
+pybase64
+imageio
+imageio[ffmpeg]
+imageio[pyav]
+pillow
