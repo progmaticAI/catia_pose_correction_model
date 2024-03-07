@@ -414,7 +414,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                     min_detection_confidence=0.3,
                     min_tracking_confidence=0.3) as pose:
                     frames = []
-                    output_video_path = get_temp_file_path("-chk.mp4")
+                    output_video_path = get_temp_file_path(".mp4")
                     
                     while cap.isOpened():
                         success, image = cap.read()
@@ -467,7 +467,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                         print("file remove error ",media_file_path)
                         os.remove(media_file_path)
                         print("output_video_path",output_video_path)
-                        filename =output_video_path.split("\\")[-1]
+                        filename =output_video_path.split("/")[-1]
                         print("filename", filename)
                         return {"filename": filename}
                     except Exception as e:
