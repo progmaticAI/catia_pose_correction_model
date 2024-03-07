@@ -22,7 +22,7 @@ app = FastAPI()
 # Allow requests from all origins during development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://get-the-pose.com", "https://get-the-pose.com/image-pose", "https://get-the-pose.com/video-pose", "https://get-the-pose.com/ws"],  
+    allow_origins=["https://get-the-pose.com"],  
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=[],
 )
@@ -394,28 +394,56 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
         # Return an error response to the frontend
         raise HTTPException(status_code=500, detail={"message": "Processing Error"})
     
-# Display Video 
+# # Display Video 
+# @app.get("/video/{filename}/")
+# async def get_video(filename: str):
+#     return FileResponse(f"./tmp/{filename}", media_type="video/mp4")
+
+# @app.get("/videoRemove/{formatted_date}/")
+# def remove_files_before_date(formatted_date: str):
+#     # Convert formatted_date string to a datetime object
+#     target_date = datetime.datetime.strptime(formatted_date, "%Y-%m-%d").date()
+#     # Specify the folder path where files should be removed
+#     folder_path = "./tmp/"
+#     # Iterate through files in the folder
+#     for filename in os.listdir(folder_path):
+#         file_path = os.path.join(folder_path, filename)
+#         creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path)).date()
+#         print(f"file: ${file_path} creation time: ${creation_date}  and target date: ${target_date} ")
+#         # Check if the file creation date is before or equal to the target date
+#         if creation_date <= target_date:
+#             os.remove(file_path)
+#             print(f"Removed file: {filename}")
+#     # Optionally return a response indicating success
+#     return {"message": "Files removed successfully"}
+    # Display Video 
 @app.get("/video/{filename}/")
 async def get_video(filename: str):
-    return FileResponse(f"./tmp/{filename}", media_type="video/mp4")
+    try:
+        return FileResponse(f"/tmp/{filename}", media_type="video/mp4")
+    except Exception as e:
+       return {"Error in video displaying: ": e}
 
 @app.get("/videoRemove/{formatted_date}/")
 def remove_files_before_date(formatted_date: str):
-    # Convert formatted_date string to a datetime object
-    target_date = datetime.datetime.strptime(formatted_date, "%Y-%m-%d").date()
-    # Specify the folder path where files should be removed
-    folder_path = "./tmp/"
-    # Iterate through files in the folder
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path)).date()
-        print(f"file: ${file_path} creation time: ${creation_date}  and target date: ${target_date} ")
-        # Check if the file creation date is before or equal to the target date
-        if creation_date <= target_date:
-            os.remove(file_path)
-            print(f"Removed file: {filename}")
-    # Optionally return a response indicating success
-    return {"message": "Files removed successfully"}
+    try:
+        # Convert formatted_date string to a datetime object
+        target_date = datetime.datetime.strptime(formatted_date, "%Y-%m-%d").date()
+        # Specify the folder path where files should be removed
+        folder_path = "/tmp/"
+        # Iterate through files in the folder
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path)).date()
+            print(f"file: ${file_path} creation time: ${creation_date}  and target date: ${target_date} ")
+            # Check if the file creation date is before or equal to the target date
+            if creation_date <= target_date:
+                os.remove(file_path)
+                print(f"Removed file: {filename}")
+        # Optionally return a response indicating success
+        return {"message": "Files removed successfully"}
+    except Exception as e:
+        return {"Error in video deleting: ": e}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket,query_params: dict = {}):
