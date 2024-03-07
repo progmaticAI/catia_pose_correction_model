@@ -322,15 +322,83 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
 @app.post("/video-pose")
     
 async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile = File(...), options: str = Form(...)):
+    # try:
+    #     # Save the uploaded file
+    #     media_file_path = get_temp_file_path(".mp4")
+    #     with open (media_file_path, "wb") as buffer:
+    #         shutil.copyfileobj(mediaFile.file, buffer)
+
+    #     output_video_path = get_temp_file_path(".mp4")
+    #     frames = []
+
+    #     mp_drawing = mp.solutions.drawing_utils
+    #     mp_drawing_styles = mp.solutions.drawing_styles
+    #     mp_pose = mp.solutions.pose
+
+    #     if mediaType == "video":
+    #         MyPoseCorrection = PoseCorrection()
+    #         MyPoseCorrection.pose = options
+    #         cap = cv2.VideoCapture(media_file_path)  # video input
+    #         with mp_pose.Pose(
+    #                 model_complexity=1,
+    #                 smooth_landmarks=True,
+    #                 min_detection_confidence=0.3,
+    #                 min_tracking_confidence=0.3) as pose:
+    #                 # frames = []
+    #                 # output_video_path = get_temp_file_path(".mp4")
+    #                 while cap.isOpened():
+    #                     success, image = cap.read()
+    #                     if not success:
+    #                         print("Ignoring empty camera frame.")
+    #                         # If loading a video, use 'break' instead of 'continue'.
+    #                         break
+    #                     iserror, response= pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCorrection)
+    #                     if(iserror):
+    #                         # Close the window
+    #                         cap.release()
+    #                         cv2.destroyAllWindows()
+    #                         # Delete the temporary file
+    #                         try:                            
+    #                           os.remove(media_file_path)
+    #                         except Exception as e:
+    #                            print("Error deleting file:", e)
+    #                         return JSONResponse(content=response)
+    #                     else:
+    #                         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #                         frames.append(image)
+    #                         # print("frames",len(frames))
+
+    #                     cap.release()
+    #                     cv2.destroyAllWindows()
+    #                     imageio.mimsave(output_video_path, frames, fps=20)
+    #                     try:
+    #                         print("file remove error ",media_file_path)
+    #                         os.remove(media_file_path)
+    #                         # print("output_video_path",output_video_path)
+    #                         filename =output_video_path.split("/")[-1]
+    #                         # print("filename", filename)
+    #                         return {"filename": filename}
+    #                     except Exception as e:
+    #                         print("Error deleting file:", e)             
+    # except Exception as e:
+    #     # Handle any exceptions that occur during processing
+    #     print("Error:", e)
+    #     # Clean up resources if necessary
+    #     cap.release()
+    #     cv2.destroyAllWindows()
+    #     try:
+    #         os.remove(media_file_path)
+    #     except Exception as cleanup_error:
+    #         print("Error deleting file:", cleanup_error)
+    #     print(f"Error processing: {e}")
+    #     # Return an error response to the frontend
+    #     raise HTTPException(status_code=500, detail={"message": "Processing Error"})
     try:
         # Save the uploaded file
         media_file_path = get_temp_file_path(".mp4")
         with open (media_file_path, "wb") as buffer:
             shutil.copyfileobj(mediaFile.file, buffer)
-
-        output_video_path = get_temp_file_path(".mp4")
-        frames = []
-
+        
         mp_drawing = mp.solutions.drawing_utils
         mp_drawing_styles = mp.solutions.drawing_styles
         mp_pose = mp.solutions.pose
@@ -339,22 +407,45 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
             MyPoseCorrection = PoseCorrection()
             MyPoseCorrection.pose = options
             cap = cv2.VideoCapture(media_file_path)  # video input
+
             with mp_pose.Pose(
                     model_complexity=1,
                     smooth_landmarks=True,
                     min_detection_confidence=0.3,
                     min_tracking_confidence=0.3) as pose:
-                    # frames = []
-                    # output_video_path = get_temp_file_path(".mp4")
+                    frames = []
+                    output_video_path = get_temp_file_path("-chk.mp4")
+                    
                     while cap.isOpened():
                         success, image = cap.read()
                         if not success:
                             print("Ignoring empty camera frame.")
                             # If loading a video, use 'break' instead of 'continue'.
                             break
-                        iserror, response= pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCorrection)
-                        if(iserror):
-                            # Close the window
+                        image.flags.writeable = False
+                        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        results = pose.process(image)
+                        landmarks_3d = results.pose_world_landmarks
+
+                        # Draw the pose annotation on the image.
+                        image.flags.writeable = True
+                        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                        mp_drawing.draw_landmarks(
+                            image,
+                            results.pose_landmarks,
+                            mp_pose.POSE_CONNECTIONS,
+                            landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+
+                        MyPoseCorrection.update_joints(landmarks_3d)
+                        try:
+                            if(MyPoseCorrection.pose =="right"):
+                                    image = get_visualization(image, MyPoseCorrection.pose,MyPoseCorrection.trunk_angle[1],MyPoseCorrection.get_trunk_color())
+                            if(MyPoseCorrection.pose =="left"):
+                                    image = get_visualization(image, MyPoseCorrection.pose,MyPoseCorrection.trunk_angle[0],MyPoseCorrection.get_trunk_color())
+                            if(MyPoseCorrection.pose =="both-front" or MyPoseCorrection.pose =="both-back" or MyPoseCorrection.pose =="both-side1" or MyPoseCorrection.pose =="both-side2"):
+                                    image = get_visualization_both(image, MyPoseCorrection.pose, MyPoseCorrection.trunk_angle[0], MyPoseCorrection.trunk_angle[1], MyPoseCorrection.get_trunk_color_both())
+                        except TypeError: 
+                           # Close the window
                             cap.release()
                             cv2.destroyAllWindows()
                             # Delete the temporary file
@@ -362,24 +453,26 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                               os.remove(media_file_path)
                             except Exception as e:
                                print("Error deleting file:", e)
-                            return JSONResponse(content=response)
-                        else:
-                            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                            frames.append(image)
-                            # print("frames",len(frames))
+                            # Return the base64-encoded image as a JSON response
+                            return JSONResponse(content="Please ensure that the uploaded video contains a human.")
+                        
+                        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        frames.append(image)
+                        # print("frames",len(frames))
 
-                        cap.release()
-                        cv2.destroyAllWindows()
-                        imageio.mimsave(output_video_path, frames, fps=20)
-                        try:
-                            print("file remove error ",media_file_path)
-                            os.remove(media_file_path)
-                            # print("output_video_path",output_video_path)
-                            filename =output_video_path.split("/")[-1]
-                            # print("filename", filename)
-                            return {"filename": filename}
-                        except Exception as e:
-                            print("Error deleting file:", e)             
+                    cap.release()
+                    cv2.destroyAllWindows()
+                    imageio.mimsave(output_video_path, frames, fps=20)
+                    try:
+                        print("file remove error ",media_file_path)
+                        os.remove(media_file_path)
+                        print("output_video_path",output_video_path)
+                        filename =output_video_path.split("\\")[-1]
+                        print("filename", filename)
+                        return {"filename": filename}
+                    except Exception as e:
+                        print("Error deleting file:", e) 
+                                 
     except Exception as e:
         # Handle any exceptions that occur during processing
         print("Error:", e)
@@ -390,10 +483,8 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
             os.remove(media_file_path)
         except Exception as cleanup_error:
             print("Error deleting file:", cleanup_error)
-        print(f"Error processing: {e}")
         # Return an error response to the frontend
         raise HTTPException(status_code=500, detail={"message": "Processing Error"})
-    
 # # Display Video 
 # @app.get("/video/{filename}/")
 # async def get_video(filename: str):
