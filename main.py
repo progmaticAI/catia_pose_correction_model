@@ -346,7 +346,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                     min_tracking_confidence=0.3) as pose:
                     # frames = []
                     # output_video_path = get_temp_file_path(".mp4")
-                    while cap.isOpened() and frame_counter < 100:
+                    while cap.isOpened() and frame_counter < 200:
                         success, image = cap.read()
                         if not success:
                             print("Ignoring empty camera frame.")
