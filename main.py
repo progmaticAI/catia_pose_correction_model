@@ -329,6 +329,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
 
         output_video_path = get_temp_file_path(".mp4")
         frames = []
+        frame_counter = 0
 
         mp_drawing = mp.solutions.drawing_utils
         mp_drawing_styles = mp.solutions.drawing_styles
@@ -345,7 +346,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                     min_tracking_confidence=0.3) as pose:
                     # frames = []
                     # output_video_path = get_temp_file_path(".mp4")
-                    while cap.isOpened():
+                    while cap.isOpened() and frame_counter < 100:
                         success, image = cap.read()
                         if not success:
                             print("Ignoring empty camera frame.")
@@ -365,6 +366,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                         else:
                             image = cv2.cvtColor(response, cv2.COLOR_BGR2RGB)
                             frames.append(image)
+                            frame_counter += 1
                             # print("frames",len(frames))
 
                     cap.release()
