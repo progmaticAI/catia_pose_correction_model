@@ -188,7 +188,7 @@ def get_visualization_both(image, pose, left_angle, right_angle, color):
 
 def get_temp_file_path(file_extension):
     temp_filename = str(uuid.uuid4()) + file_extension
-    return os.path.join("/tmp", temp_filename)
+    return os.path.join("/tmp", temp_filename) ###Need to change to /tmp for server 
 
 def pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCorrection):
         image.flags.writeable = False
@@ -320,7 +320,6 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/video-pose")
-    
 async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile = File(...), options: str = Form(...)):
     try:
         # Save the uploaded file
@@ -368,17 +367,17 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                             frames.append(image)
                             # print("frames",len(frames))
 
-                        cap.release()
-                        cv2.destroyAllWindows()
-                        imageio.mimsave(output_video_path, frames, fps=20)
-                        try:
+                    cap.release()
+                    cv2.destroyAllWindows()
+                    imageio.mimsave(output_video_path, frames, fps=20)
+                    try:
                             # print("file remove error ",media_file_path)
                             os.remove(media_file_path)
                             # print("output_video_path",output_video_path)
                             filename =output_video_path.split("/")[-1]
                             # print("filename", filename)
                             return {"filename": filename}
-                        except Exception as e:
+                    except Exception as e:
                             print("Error deleting file:", e)             
     except Exception as e:
         # Handle any exceptions that occur during processing
