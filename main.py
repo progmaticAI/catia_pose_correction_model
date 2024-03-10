@@ -308,7 +308,7 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
                     os.remove(media_file_path)
                 except Exception as e:
                     print("Error deleting file:", e)
-                # Return the base64-encoded image as a JSON response
+                # Return the base64-encoded image as a JSON responses
                 return JSONResponse(content={"image": img_base64})
     
     except Exception as e:
