@@ -37,6 +37,9 @@ class PoseCorrection:
             self.left_angle = 0
             self.right_angle = 0
 
+ 
+        
+
         def update_joints(self, landmarks_3d):
             """update all needed joints based on landmarks_3d.landmark from mp"""
             try:
@@ -84,7 +87,9 @@ class PoseCorrection:
                 return int(right_angle_adjusted), int(left_angle_adjusted)
             else:
                 return int(abs(np.degrees(right_angle))), int(abs(np.degrees(left_angle)))
-
+          
+         
+        
         def get_trunk_color(self):
             """returns (B,G,R) colors for visualization"""
             if(self.pose == "left" and (self.right_angle > self.left_angle)):
@@ -154,36 +159,77 @@ class PoseCorrection:
                     else:
                         return (0,0,255) ## Red
         
-def get_visualization(image, pose, angle, color):
-    if(pose =="right"):
-            # visualization: text + HP bar
-            image = cv2.putText(image, text="Right arm angle: "+str(angle), 
-                org=(5,60), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
-            image = cv2.rectangle(image, (5,10), (145*2, 30), color=(255,255,255), thickness=-1)
-            image = cv2.rectangle(image, (5,10), (145*2-(angle * 2), 30), color=color, thickness=-1)
-            return image
 
-    if(pose =="left"):
-            # visualization: text + HP bar
-            image = cv2.putText(image, text="Left arm angle: "+str(angle), 
-                org=(5,60), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
-            image = cv2.rectangle(image, (10,10), (175*2, 30), color=(255,255,255), thickness=-1)
-            image = cv2.rectangle(image, (5,10), (175*2-(angle * 2), 30), color=color, thickness=-1)
-            return image
-                      
+def get_correctness_text(color):
+  """
+  This function takes an RGB color as input and returns a text indicating the corresponding pose accuracy.
+
+  Args:
+    color: A tuple representing an RGB color (red, green, blue).
+
+  Returns:
+    A string indicating the pose accuracy based on the input color.
+  """
+
+  if color == (255, 0, 0):
+    # Assigns text based on color condition (Red indicates room for improvement)
+    text = "Tu peux encore t'améliorer"
+  elif color == (255, 255, 0):
+    # Assigns text based on color condition (Yellow indicates almost there)
+    text = "Tu y es presque"
+  elif color == (0, 255, 0):
+    # Assigns text based on color condition (Green indicates perfect)
+    text = "Parfait!!! Tu touches au but"
+  else:
+    # Assigns text for unexpected color (indicates incorrect pose selection)
+    text = "selection de pose incorrecte"
+
+  return text
+
+
+
+
+def get_visualization(image, pose, angle, color):
+    # Draw arm angle text
+    if pose =="right":
+        # visualization: text + HP bar
+        image = cv2.putText(image, text="angle du bras droit: "+str(angle), 
+            org=(5,60), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
+        image = cv2.rectangle(image, (5,10), (145*2, 30), color=(255,255,255), thickness=-1)
+        image = cv2.rectangle(image, (5,10), (145*2-(angle * 2), 30), color=color, thickness=-1)
+    elif pose =="left":
+        # visualization: text + HP bar
+        image = cv2.putText(image, text="angle du bras gauche: "+str(angle), 
+            org=(5,60), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
+        image = cv2.rectangle(image, (10,10), (175*2, 30), color=(255,255,255), thickness=-1)
+        image = cv2.rectangle(image, (5,10), (175*2-(angle * 2), 30), color=color, thickness=-1)
+    
+    
+    correctness_text = get_correctness_text(color)
+    
+    # Draw text on image
+    image = cv2.putText(image, correctness_text, org=(5, 110), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
+
+    return image
+
+                     
 def get_visualization_both(image, pose, left_angle, right_angle, color):
     if(pose =="both-front" or pose =="both-back" or pose =="both-side1" or pose =="both-side2"):
             # visualization: text + HP bar
-            image = cv2.putText(image, text="Left arm angle: "+str(left_angle), 
+            image = cv2.putText(image, text="angle du bras gauche: "+str(left_angle), 
                 org=(5,60), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
             image = cv2.rectangle(image, (5,10), (145*3, 30), color=(255,255,255), thickness=-1)
             image = cv2.rectangle(image, (5,10), (145*3-(left_angle * 2), 30), color=color, thickness=-1)
-
                     
-            image = cv2.putText(image, text="Right arm angle: "+str(right_angle), 
+            image = cv2.putText(image, text="angle du bras droit: "+str(right_angle), 
                 org=(5,125), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
             image = cv2.rectangle(image, (5,75), (145*3, 95), color=(255,255,255), thickness=-1)
             image = cv2.rectangle(image, (5,75), (145*3-(right_angle * 2), 95), color=color, thickness=-1)
+                    # Get correctness text
+            correctness_text = get_correctness_text(color)
+            
+            # Draw text on image
+            image = cv2.putText(image, correctness_text, org=(5, 180), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=color, thickness=3)
             return image
 
 def get_temp_file_path(file_extension):
@@ -209,7 +255,7 @@ def pose_detection(image, mp_drawing, mp_drawing_styles, mp_pose, pose, MyPoseCo
        
         try:
             if MyPoseCorrection.pose == "right":
-                image = get_visualization(image, MyPoseCorrection.pose, MyPoseCorrection.trunk_angle[1], MyPoseCorrection.get_trunk_color())
+                image = get_visualization(image, MyPoseCorrection.pose, MyPoseCorrection.trunk_angle[1], MyPoseCorrection.get_trunk_color() )
             if(MyPoseCorrection.pose =="left"):
                 image = get_visualization(image, MyPoseCorrection.pose,MyPoseCorrection.trunk_angle[0],MyPoseCorrection.get_trunk_color())
             if(MyPoseCorrection.pose =="both-front" or MyPoseCorrection.pose =="both-back" or MyPoseCorrection.pose =="both-side1" or MyPoseCorrection.pose =="both-side2"):
@@ -225,9 +271,6 @@ def process_frame(frame_data, mediaType, options):
         encoded_data = frame_data.split(',')[1]
         encoded_data = encoded_data.replace('"', '').replace('}', '')
         img = base64.b64decode(encoded_data)
-        
-        # filename = 'tmp/some_image.jpg'
-        # with open(filename, 'wb') as f: f.write(img) 
 
         if img is None:
             print("Error decoding image from base64 data")
@@ -394,30 +437,8 @@ async def get_pose_correction(mediaType: str = Form(...), mediaFile: UploadFile 
         print(f"Error processing: {e}")
         # Return an error response to the frontend
         raise HTTPException(status_code=500, detail={"message": "Processing Error"})
-    
-# # Display Video 
-# @app.get("/video/{filename}/")
-# async def get_video(filename: str):
-#     return FileResponse(f"./tmp/{filename}", media_type="video/mp4")
 
-# @app.get("/videoRemove/{formatted_date}/")
-# def remove_files_before_date(formatted_date: str):
-#     # Convert formatted_date string to a datetime object
-#     target_date = datetime.datetime.strptime(formatted_date, "%Y-%m-%d").date()
-#     # Specify the folder path where files should be removed
-#     folder_path = "./tmp/"
-#     # Iterate through files in the folder
-#     for filename in os.listdir(folder_path):
-#         file_path = os.path.join(folder_path, filename)
-#         creation_date = datetime.datetime.fromtimestamp(os.path.getctime(file_path)).date()
-#         print(f"file: ${file_path} creation time: ${creation_date}  and target date: ${target_date} ")
-#         # Check if the file creation date is before or equal to the target date
-#         if creation_date <= target_date:
-#             os.remove(file_path)
-#             print(f"Removed file: {filename}")
-#     # Optionally return a response indicating success
-#     return {"message": "Files removed successfully"}
-    # Display Video 
+
 @app.get("/video/{filename}/")
 async def get_video(filename: str):
     try:
